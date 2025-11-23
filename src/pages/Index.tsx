@@ -6,9 +6,11 @@ import { DataDashboard } from "@/components/DataDashboard";
 import { GamificationSystem } from "@/components/GamificationSystem";
 import { VoiceControl } from "@/components/VoiceControl";
 import { Button } from "@/components/ui/button";
-import { Brain, Sparkles, ChevronDown } from "lucide-react";
+import { Brain, Sparkles, ChevronDown, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("hero");
   const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
 
@@ -78,6 +80,14 @@ const Index = () => {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center items-center">
+            <Button
+              size="lg"
+              onClick={() => navigate("/chat")}
+              className="bg-gradient-to-r from-secondary to-accent hover:opacity-80 transition-opacity text-lg px-8 py-6 hover-scale"
+            >
+              <MessageSquare className="w-5 h-5 mr-2" />
+              Try AI Chat
+            </Button>
             <Button
               size="lg"
               onClick={() => scrollToSection("neural")}
