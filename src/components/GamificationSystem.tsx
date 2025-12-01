@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Star, Zap, Target, Award } from "lucide-react";
+import { ShareButton } from "@/components/ShareButton";
 
 interface Achievement {
   id: string;
@@ -90,6 +91,17 @@ export const GamificationSystem = () => {
     return () => clearInterval(interval);
   }, [level, xpForNextLevel]);
 
+  const getShareableAchievements = () => {
+    const unlockedAchievements = achievements.filter((a) => a.unlocked);
+    const achievementText = unlockedAchievements
+      .slice(0, 3)
+      .map((a) => a.title)
+      .join(", ");
+    
+    const count = unlockedAchievements.length;
+    return `I've reached Level ${level} with ${xp} XP and unlocked ${count} achievement${count !== 1 ? 's' : ''}${achievementText ? `: ${achievementText}` : ''}!`;
+  };
+
   return (
     <Card className="glass-card p-6">
       <div className="space-y-6">
@@ -97,12 +109,21 @@ export const GamificationSystem = () => {
         <div>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Trophy className="w-6 h-6 text-gold" />
+              <Trophy className="w-6 h-6 text-gold-energy" />
               <span className="text-2xl font-bold gradient-text">Level {level}</span>
             </div>
-            <span className="text-sm text-muted-foreground">
-              {xp} / {xpForNextLevel} XP
-            </span>
+            <div className="flex items-center gap-2">
+              <ShareButton
+                title="Check out my achievements!"
+                text={getShareableAchievements()}
+                hashtags={["NeuralExperience", "Achievement", "LevelUp"]}
+                size="sm"
+                variant="outline"
+              />
+              <span className="text-sm text-muted-foreground">
+                {xp} / {xpForNextLevel} XP
+              </span>
+            </div>
           </div>
           <Progress value={xpProgress} className="h-3 pulse-glow" />
         </div>

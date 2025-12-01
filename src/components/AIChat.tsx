@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Send, Sparkles, LogOut, Brain } from "lucide-react";
+import { ShareButton } from "@/components/ShareButton";
 
 type Personality = "professional" | "casual" | "humorous";
 
@@ -131,6 +132,17 @@ export const AIChat = () => {
     }
   };
 
+  const getShareableConversation = () => {
+    const conversationText = messages
+      .slice(-4) // Get last 4 messages for sharing
+      .map((msg) => `${msg.role === "user" ? "Me" : "AI"}: ${msg.content}`)
+      .join("\n\n");
+    
+    return conversationText.length > 280 
+      ? conversationText.substring(0, 277) + "..." 
+      : conversationText;
+  };
+
   const personalities: { value: Personality; label: string; description: string }[] = [
     { value: "professional", label: "Professional", description: "Formal and precise" },
     { value: "casual", label: "Casual", description: "Friendly and relaxed" },
@@ -148,14 +160,25 @@ export const AIChat = () => {
             <p className="text-xs md:text-sm text-muted-foreground">AI with personality</p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleSignOut}
-          className="border-border/50 w-full sm:w-auto"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          {messages.length > 0 && (
+            <ShareButton
+              title="Check out my AI conversation!"
+              text={getShareableConversation()}
+              hashtags={["AI", "NeuralExperience", "Chatbot"]}
+              size="default"
+              variant="outline"
+            />
+          )}
+          <Button
+            variant="outline"
+            onClick={handleSignOut}
+            className="border-border/50 flex-1 sm:flex-initial"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
       </div>
 
       {/* Personality Selector */}
