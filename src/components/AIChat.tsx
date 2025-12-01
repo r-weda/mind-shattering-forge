@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Send, Sparkles, LogOut, Brain } from "lucide-react";
+import { Send, Sparkles, LogOut, Brain, History } from "lucide-react";
 import { ShareButton } from "@/components/ShareButton";
+import { ConversationHistory } from "@/components/ConversationHistory";
 
 type Personality = "professional" | "casual" | "humorous";
 
@@ -21,6 +22,7 @@ export const AIChat = () => {
   const [loading, setLoading] = useState(false);
   const [personality, setPersonality] = useState<Personality>("professional");
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -30,6 +32,48 @@ export const AIChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const loadConversation = async (convId: string) => {
+    try {
+      // Load conversation details
+      const { data: conversation, error: convError } = await supabase
+        .from("conversations")
+        .select("*")
+        .eq("id", convId)
+        .single();
+
+      if (convError) throw convError;
+
+      // Load messages
+      const { data: messagesData, error: msgError } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", convId)
+        .order("created_at", { ascending: true });
+
+      if (msgError) throw msgError;
+
+      setConversationId(convId);
+      setPersonality(conversation.personality as Personality);
+      setMessages(
+        messagesData.map((msg) => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content,
+        }))
+      );
+      toast.success("Conversation loaded");
+    } catch (error: any) {
+      console.error("Error loading conversation:", error);
+      toast.error("Failed to load conversation");
+    }
+  };
+
+  const startNewConversation = () => {
+    setConversationId(null);
+    setMessages([]);
+    setPersonality("professional");
+    toast.success("Started new conversation");
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -151,6 +195,14 @@ export const AIChat = () => {
 
   return (
     <div className="min-h-screen flex flex-col px-4 py-4 md:py-8 max-w-6xl mx-auto">
+      <ConversationHistory
+        currentConversationId={conversationId}
+        onSelectConversation={loadConversation}
+        onNewConversation={startNewConversation}
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+      />
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
@@ -161,6 +213,14 @@ export const AIChat = () => {
           </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => setHistoryOpen(true)}
+            className="border-border/50"
+          >
+            <History className="w-4 h-4 mr-2" />
+            History
+          </Button>
           {messages.length > 0 && (
             <ShareButton
               title="Check out my AI conversation!"
