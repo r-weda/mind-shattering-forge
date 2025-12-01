@@ -53,6 +53,7 @@ export default {
           violet: "hsl(var(--electric-violet))",
         },
         gold: "hsl(var(--gold-energy))",
+        "gold-energy": "hsl(var(--gold-energy))",
       },
       borderRadius: {
         lg: "var(--radius)",
