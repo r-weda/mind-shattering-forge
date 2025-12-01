@@ -113,7 +113,7 @@ const Index = () => {
       </section>
 
       {/* Voice Control Bar */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4 animate-slide-in">
+      <div className="fixed top-2 md:top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-2 md:px-4 animate-slide-in">
         <VoiceControl onCommand={handleVoiceCommand} />
       </div>
 
@@ -174,7 +174,7 @@ const Index = () => {
       </section>
 
       {/* Navigation Dots */}
-      <div className="fixed right-8 top-1/2 -translate-y-1/2 z-40 space-y-4">
+      <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 space-y-3 md:space-y-4">
         {["hero", "neural", "canvas", "dashboard", "gamification"].map((section) => (
           <button
             key={section}

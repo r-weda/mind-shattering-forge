@@ -138,20 +138,20 @@ export const AIChat = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col px-4 py-8 max-w-6xl mx-auto">
+    <div className="min-h-screen flex flex-col px-4 py-4 md:py-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <Brain className="w-10 h-10 text-primary animate-pulse-glow" />
+          <Brain className="w-8 h-8 md:w-10 md:h-10 text-primary animate-pulse-glow" />
           <div>
-            <h1 className="text-3xl font-black gradient-text">Neural Chat</h1>
-            <p className="text-sm text-muted-foreground">AI with personality</p>
+            <h1 className="text-2xl md:text-3xl font-black gradient-text">Neural Chat</h1>
+            <p className="text-xs md:text-sm text-muted-foreground">AI with personality</p>
           </div>
         </div>
         <Button
           variant="outline"
           onClick={handleSignOut}
-          className="border-border/50"
+          className="border-border/50 w-full sm:w-auto"
         >
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
@@ -186,7 +186,7 @@ export const AIChat = () => {
       </Card>
 
       {/* Messages */}
-      <Card className="glass-card flex-1 mb-6 p-6 overflow-y-auto max-h-[60vh]">
+      <Card className="glass-card flex-1 mb-4 md:mb-6 p-3 md:p-6 overflow-y-auto max-h-[50vh] md:max-h-[60vh]">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Brain className="w-16 h-16 text-primary/50 mb-4" />
@@ -207,10 +207,10 @@ export const AIChat = () => {
                 }`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg p-4 ${
+                  className={`max-w-[85%] md:max-w-[80%] rounded-lg p-3 md:p-4 ${
                     message.role === "user"
-                      ? "bg-primary text-primary-foreground ml-4"
-                      : "bg-card border border-border/50 mr-4"
+                      ? "bg-primary text-primary-foreground ml-2 md:ml-4"
+                      : "bg-card border border-border/50 mr-2 md:mr-4"
                   }`}
                 >
                   <div className="text-sm font-semibold mb-1">
