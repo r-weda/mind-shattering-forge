@@ -82,39 +82,43 @@ export const VoiceControl = ({ onCommand }: { onCommand: (command: string) => vo
   };
 
   return (
-    <Card className="glass-card p-4">
-      <div className="flex items-center gap-4">
+    <Card className="glass-card p-3 md:p-4">
+      <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
         <Button
           onClick={toggleListening}
           className={`${
             isListening
               ? "bg-secondary hover:bg-secondary/80 pulse-glow"
               : "bg-primary hover:bg-primary/80"
-          } transition-all`}
+          } transition-all w-full sm:w-auto whitespace-nowrap`}
+          size="sm"
         >
           {isListening ? (
             <>
               <MicOff className="w-4 h-4 mr-2" />
-              Stop Listening
+              <span className="hidden sm:inline">Stop Listening</span>
+              <span className="sm:hidden">Stop</span>
             </>
           ) : (
             <>
               <Mic className="w-4 h-4 mr-2" />
-              Start Voice Control
+              <span className="hidden sm:inline">Start Voice Control</span>
+              <span className="sm:hidden">Voice Control</span>
             </>
           )}
         </Button>
-        <div className="flex-1">
+        <div className="flex-1 w-full">
           {isListening ? (
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-              <p className="text-sm text-foreground">
+              <p className="text-xs md:text-sm text-foreground truncate">
                 {transcript || "Listening..."}
               </p>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Voice control ready. Commands: "neural", "canvas", "dashboard", "achievements"
+            <p className="text-xs md:text-sm text-muted-foreground text-center sm:text-left">
+              <span className="hidden md:inline">Voice control ready. Commands: "neural", "canvas", "dashboard", "achievements"</span>
+              <span className="md:hidden">Say: "neural", "canvas", "dashboard", or "achievements"</span>
             </p>
           )}
         </div>
