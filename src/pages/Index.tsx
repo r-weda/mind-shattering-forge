@@ -5,6 +5,7 @@ import { CollaborationCanvas } from "@/components/CollaborationCanvas";
 import { DataDashboard } from "@/components/DataDashboard";
 import { GamificationSystem } from "@/components/GamificationSystem";
 import { VoiceControl } from "@/components/VoiceControl";
+import { StaggeredAnimation } from "@/components/StaggeredAnimation";
 import { Button } from "@/components/ui/button";
 import { Brain, Sparkles, ChevronDown, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -69,7 +70,10 @@ const Index = () => {
         ref={(el) => (sectionsRef.current.hero = el)}
         className="min-h-screen flex flex-col items-center justify-center px-4 relative"
       >
-        <div className="text-center space-y-6 sm:space-y-8 max-w-6xl mx-auto animate-fade-in-up">
+        <StaggeredAnimation 
+          className="text-center space-y-6 sm:space-y-8 max-w-6xl mx-auto"
+          staggerDelay={150}
+        >
           <div className="inline-block mb-2 sm:mb-4">
             <Brain className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-primary animate-pulse-glow mx-auto mb-2 sm:mb-4" />
           </div>
@@ -115,7 +119,7 @@ const Index = () => {
           <div className="pt-12 animate-bounce">
             <ChevronDown className="w-8 h-8 text-primary mx-auto" />
           </div>
-        </div>
+        </StaggeredAnimation>
       </section>
 
       {/* Voice Control Bar */}
