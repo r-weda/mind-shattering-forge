@@ -79,7 +79,7 @@ const Index = () => {
             voice controls, and cutting-edge data analytics. All in one stunning interface.
           </p>
 
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-center w-full px-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-center w-full max-w-md sm:max-w-none mx-auto">
             <Button
               size="lg"
               onClick={() => navigate("/chat")}
