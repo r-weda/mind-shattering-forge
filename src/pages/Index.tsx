@@ -8,11 +8,17 @@ import { VoiceControl } from "@/components/VoiceControl";
 import { Button } from "@/components/ui/button";
 import { Brain, Sparkles, ChevronDown, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
 const Index = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("hero");
   const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
+
+  const { ref: neuralRef, isVisible: neuralVisible } = useScrollAnimation<HTMLDivElement>();
+  const { ref: canvasRef, isVisible: canvasVisible } = useScrollAnimation<HTMLDivElement>();
+  const { ref: dashboardRef, isVisible: dashboardVisible } = useScrollAnimation<HTMLDivElement>();
+  const { ref: gamificationRef, isVisible: gamificationVisible } = useScrollAnimation<HTMLDivElement>();
 
   const handleVoiceCommand = (command: string) => {
     const sectionMap: { [key: string]: string } = {
@@ -123,8 +129,15 @@ const Index = () => {
         ref={(el) => (sectionsRef.current.neural = el)}
         className="min-h-screen flex items-center justify-center px-4 py-20"
       >
-        <div className="max-w-7xl w-full animate-fade-in-up">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
+        <div 
+          ref={neuralRef}
+          className={`max-w-7xl w-full transition-all duration-700 ease-out ${
+            neuralVisible 
+              ? "opacity-100 translate-y-0" 
+              : "opacity-0 translate-y-12"
+          }`}
+        >
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
             Neural Network Visualization
           </h2>
           <NeuralNetworkViz />
@@ -137,8 +150,15 @@ const Index = () => {
         ref={(el) => (sectionsRef.current.canvas = el)}
         className="min-h-screen flex items-center justify-center px-4 py-20"
       >
-        <div className="max-w-7xl w-full animate-fade-in-up">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
+        <div 
+          ref={canvasRef}
+          className={`max-w-7xl w-full transition-all duration-700 ease-out delay-100 ${
+            canvasVisible 
+              ? "opacity-100 translate-y-0" 
+              : "opacity-0 translate-y-12"
+          }`}
+        >
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
             Collaboration Canvas
           </h2>
           <CollaborationCanvas />
@@ -151,8 +171,15 @@ const Index = () => {
         ref={(el) => (sectionsRef.current.dashboard = el)}
         className="min-h-screen flex items-center justify-center px-4 py-20"
       >
-        <div className="max-w-7xl w-full animate-fade-in-up">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
+        <div 
+          ref={dashboardRef}
+          className={`max-w-7xl w-full transition-all duration-700 ease-out delay-100 ${
+            dashboardVisible 
+              ? "opacity-100 translate-y-0" 
+              : "opacity-0 translate-y-12"
+          }`}
+        >
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
             Real-Time Data Dashboard
           </h2>
           <DataDashboard />
@@ -165,8 +192,15 @@ const Index = () => {
         ref={(el) => (sectionsRef.current.gamification = el)}
         className="min-h-screen flex items-center justify-center px-4 py-20"
       >
-        <div className="max-w-4xl w-full animate-fade-in-up">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
+        <div 
+          ref={gamificationRef}
+          className={`max-w-4xl w-full transition-all duration-700 ease-out delay-100 ${
+            gamificationVisible 
+              ? "opacity-100 translate-y-0" 
+              : "opacity-0 translate-y-12"
+          }`}
+        >
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text text-center mb-8 md:mb-12">
             Achievements & Progress
           </h2>
           <GamificationSystem />
