@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Send, Sparkles, LogOut, Brain, History } from "lucide-react";
+import { Send, Sparkles, Brain, ArrowLeft } from "lucide-react";
 import { ShareButton } from "@/components/ShareButton";
-import { ConversationHistory } from "@/components/ConversationHistory";
+import { useNavigate } from "react-router-dom";
 
 type Personality = "professional" | "casual" | "humorous";
 
@@ -21,9 +20,8 @@ export const AIChat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [personality, setPersonality] = useState<Personality>("professional");
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [historyOpen, setHistoryOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,51 +31,10 @@ export const AIChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  const loadConversation = async (convId: string) => {
-    try {
-      // Load conversation details
-      const { data: conversation, error: convError } = await supabase
-        .from("conversations")
-        .select("*")
-        .eq("id", convId)
-        .single();
-
-      if (convError) throw convError;
-
-      // Load messages
-      const { data: messagesData, error: msgError } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("conversation_id", convId)
-        .order("created_at", { ascending: true });
-
-      if (msgError) throw msgError;
-
-      setConversationId(convId);
-      setPersonality(conversation.personality as Personality);
-      setMessages(
-        messagesData.map((msg) => ({
-          role: msg.role as "user" | "assistant",
-          content: msg.content,
-        }))
-      );
-      toast.success("Conversation loaded");
-    } catch (error: any) {
-      console.error("Error loading conversation:", error);
-      toast.error("Failed to load conversation");
-    }
-  };
-
-  const startNewConversation = () => {
-    setConversationId(null);
+  const clearChat = () => {
     setMessages([]);
     setPersonality("professional");
-    toast.success("Started new conversation");
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast("Signed out successfully");
+    toast.success("Chat cleared");
   };
 
   const sendMessage = async () => {
@@ -89,21 +46,17 @@ export const AIChat = () => {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No session");
-
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             message: userMessage,
-            conversationId,
             personality,
+            history: messages,
           }),
         }
       );
@@ -111,12 +64,6 @@ export const AIChat = () => {
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to send message");
-      }
-
-      // Get conversation ID from headers
-      const newConversationId = response.headers.get("X-Conversation-Id");
-      if (newConversationId && !conversationId) {
-        setConversationId(newConversationId);
       }
 
       // Handle streaming response
@@ -195,17 +142,17 @@ export const AIChat = () => {
 
   return (
     <div className="min-h-screen flex flex-col px-4 py-4 md:py-8 max-w-6xl mx-auto">
-      <ConversationHistory
-        currentConversationId={conversationId}
-        onSelectConversation={loadConversation}
-        onNewConversation={startNewConversation}
-        isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-      />
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+            className="mr-1"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
           <Brain className="w-8 h-8 md:w-10 md:h-10 text-primary animate-pulse-glow" />
           <div>
             <h1 className="text-2xl md:text-3xl font-black gradient-text">Neural Chat</h1>
@@ -213,31 +160,24 @@ export const AIChat = () => {
           </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            onClick={() => setHistoryOpen(true)}
-            className="border-border/50"
-          >
-            <History className="w-4 h-4 mr-2" />
-            History
-          </Button>
           {messages.length > 0 && (
-            <ShareButton
-              title="Check out my AI conversation!"
-              text={getShareableConversation()}
-              hashtags={["AI", "NeuralExperience", "Chatbot"]}
-              size="default"
-              variant="outline"
-            />
+            <>
+              <Button
+                variant="outline"
+                onClick={clearChat}
+                className="border-border/50"
+              >
+                Clear Chat
+              </Button>
+              <ShareButton
+                title="Check out my AI conversation!"
+                text={getShareableConversation()}
+                hashtags={["AI", "NeuralExperience", "Chatbot"]}
+                size="default"
+                variant="outline"
+              />
+            </>
           )}
-          <Button
-            variant="outline"
-            onClick={handleSignOut}
-            className="border-border/50 flex-1 sm:flex-initial"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
         </div>
       </div>
 
