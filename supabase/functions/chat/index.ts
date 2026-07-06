@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,22 +21,104 @@ serve(async (req) => {
   }
 
   try {
-    const { message, personality = "professional", history = [] } = await req.json();
+    // Get authorization token
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header");
+    }
 
-    console.log("Chat request:", { personality, messageLength: message?.length, historyLength: history?.length });
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error("Unauthorized");
+    }
+
+    const { message, conversationId, personality = "professional" } = await req.json();
+
+    console.log("Chat request:", { userId: user.id, conversationId, personality, messageLength: message?.length });
 
     if (!message) {
       throw new Error("Message is required");
     }
 
-    // Build messages array with personality and history
+    // Get or create conversation
+    let conversation;
+    if (conversationId) {
+      const { data, error } = await supabaseClient
+        .from("conversations")
+        .select("*")
+        .eq("id", conversationId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching conversation:", error);
+        throw new Error("Conversation not found");
+      }
+      conversation = data;
+    } else {
+      // Create new conversation
+      const { data, error } = await supabaseClient
+        .from("conversations")
+        .insert({
+          user_id: user.id,
+          personality,
+          title: message.substring(0, 50) + "...",
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating conversation:", error);
+        throw new Error("Failed to create conversation");
+      }
+      conversation = data;
+    }
+
+    // Save user message
+    const { error: userMsgError } = await supabaseClient
+      .from("messages")
+      .insert({
+        conversation_id: conversation.id,
+        role: "user",
+        content: message,
+      });
+
+    if (userMsgError) {
+      console.error("Error saving user message:", userMsgError);
+      throw new Error("Failed to save message");
+    }
+
+    // Get conversation history
+    const { data: history, error: historyError } = await supabaseClient
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversation.id)
+      .order("created_at", { ascending: true });
+
+    if (historyError) {
+      console.error("Error fetching history:", historyError);
+      throw new Error("Failed to fetch conversation history");
+    }
+
+    // Build messages array with personality
     const messages = [
       { role: "system", content: PERSONALITY_PROMPTS[personality as keyof typeof PERSONALITY_PROMPTS] || PERSONALITY_PROMPTS.professional },
-      ...history.map((msg: { role: string; content: string }) => ({
+      ...history.map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),
-      { role: "user", content: message },
     ];
 
     console.log("Calling AI gateway with", messages.length, "messages");
@@ -86,7 +169,8 @@ serve(async (req) => {
       throw new Error("AI gateway error");
     }
 
-    // Stream the response
+    // Stream the response and collect full message for saving
+    let fullResponse = "";
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
@@ -115,6 +199,7 @@ serve(async (req) => {
                   const parsed = JSON.parse(data);
                   const content = parsed.choices?.[0]?.delta?.content;
                   if (content) {
+                    fullResponse += content;
                     controller.enqueue(encoder.encode(line + "\n"));
                   }
                 } catch (e) {
@@ -122,6 +207,19 @@ serve(async (req) => {
                 }
               }
             }
+          }
+
+          // Save assistant response
+          if (fullResponse) {
+            await supabaseClient
+              .from("messages")
+              .insert({
+                conversation_id: conversation.id,
+                role: "assistant",
+                content: fullResponse,
+              });
+            
+            console.log("Saved assistant response, length:", fullResponse.length);
           }
 
           controller.close();
@@ -136,6 +234,7 @@ serve(async (req) => {
       headers: {
         ...corsHeaders,
         "Content-Type": "text/event-stream",
+        "X-Conversation-Id": conversation.id,
       },
     });
   } catch (error) {

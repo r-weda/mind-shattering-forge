@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Send, Sparkles, Brain, ArrowLeft } from "lucide-react";
-import { ShareButton } from "@/components/ShareButton";
-import { useNavigate } from "react-router-dom";
+import { Send, Sparkles, LogOut, Brain } from "lucide-react";
 
 type Personality = "professional" | "casual" | "humorous";
 
@@ -20,8 +19,8 @@ export const AIChat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [personality, setPersonality] = useState<Personality>("professional");
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,10 +30,9 @@ export const AIChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  const clearChat = () => {
-    setMessages([]);
-    setPersonality("professional");
-    toast.success("Chat cleared");
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast("Signed out successfully");
   };
 
   const sendMessage = async () => {
@@ -46,17 +44,21 @@ export const AIChat = () => {
     setLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No session");
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             message: userMessage,
+            conversationId,
             personality,
-            history: messages,
           }),
         }
       );
@@ -64,6 +66,12 @@ export const AIChat = () => {
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to send message");
+      }
+
+      // Get conversation ID from headers
+      const newConversationId = response.headers.get("X-Conversation-Id");
+      if (newConversationId && !conversationId) {
+        setConversationId(newConversationId);
       }
 
       // Handle streaming response
@@ -123,17 +131,6 @@ export const AIChat = () => {
     }
   };
 
-  const getShareableConversation = () => {
-    const conversationText = messages
-      .slice(-4) // Get last 4 messages for sharing
-      .map((msg) => `${msg.role === "user" ? "Me" : "AI"}: ${msg.content}`)
-      .join("\n\n");
-    
-    return conversationText.length > 280 
-      ? conversationText.substring(0, 277) + "..." 
-      : conversationText;
-  };
-
   const personalities: { value: Personality; label: string; description: string }[] = [
     { value: "professional", label: "Professional", description: "Formal and precise" },
     { value: "casual", label: "Casual", description: "Friendly and relaxed" },
@@ -141,44 +138,24 @@ export const AIChat = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col px-4 py-4 md:py-8 max-w-6xl mx-auto">
+    <div className="min-h-screen flex flex-col px-4 py-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-            className="mr-1"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <Brain className="w-8 h-8 md:w-10 md:h-10 text-primary animate-pulse-glow" />
+          <Brain className="w-10 h-10 text-primary animate-pulse-glow" />
           <div>
-            <h1 className="text-2xl md:text-3xl font-black gradient-text">Neural Chat</h1>
-            <p className="text-xs md:text-sm text-muted-foreground">AI with personality</p>
+            <h1 className="text-3xl font-black gradient-text">Neural Chat</h1>
+            <p className="text-sm text-muted-foreground">AI with personality</p>
           </div>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          {messages.length > 0 && (
-            <>
-              <Button
-                variant="outline"
-                onClick={clearChat}
-                className="border-border/50"
-              >
-                Clear Chat
-              </Button>
-              <ShareButton
-                title="Check out my AI conversation!"
-                text={getShareableConversation()}
-                hashtags={["AI", "NeuralExperience", "Chatbot"]}
-                size="default"
-                variant="outline"
-              />
-            </>
-          )}
-        </div>
+        <Button
+          variant="outline"
+          onClick={handleSignOut}
+          className="border-border/50"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
 
       {/* Personality Selector */}
@@ -209,7 +186,7 @@ export const AIChat = () => {
       </Card>
 
       {/* Messages */}
-      <Card className="glass-card flex-1 mb-4 md:mb-6 p-3 md:p-6 overflow-y-auto max-h-[50vh] md:max-h-[60vh]">
+      <Card className="glass-card flex-1 mb-6 p-6 overflow-y-auto max-h-[60vh]">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Brain className="w-16 h-16 text-primary/50 mb-4" />
@@ -230,10 +207,10 @@ export const AIChat = () => {
                 }`}
               >
                 <div
-                  className={`max-w-[85%] md:max-w-[80%] rounded-lg p-3 md:p-4 ${
+                  className={`max-w-[80%] rounded-lg p-4 ${
                     message.role === "user"
-                      ? "bg-primary text-primary-foreground ml-2 md:ml-4"
-                      : "bg-card border border-border/50 mr-2 md:mr-4"
+                      ? "bg-primary text-primary-foreground ml-4"
+                      : "bg-card border border-border/50 mr-4"
                   }`}
                 >
                   <div className="text-sm font-semibold mb-1">

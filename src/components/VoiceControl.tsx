@@ -82,43 +82,39 @@ export const VoiceControl = ({ onCommand }: { onCommand: (command: string) => vo
   };
 
   return (
-    <Card className="glass-card p-3 md:p-4">
-      <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
+    <Card className="glass-card p-4">
+      <div className="flex items-center gap-4">
         <Button
           onClick={toggleListening}
           className={`${
             isListening
               ? "bg-secondary hover:bg-secondary/80 pulse-glow"
               : "bg-primary hover:bg-primary/80"
-          } transition-all w-full sm:w-auto whitespace-nowrap`}
-          size="sm"
+          } transition-all`}
         >
           {isListening ? (
             <>
               <MicOff className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Stop Listening</span>
-              <span className="sm:hidden">Stop</span>
+              Stop Listening
             </>
           ) : (
             <>
               <Mic className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Start Voice Control</span>
-              <span className="sm:hidden">Voice Control</span>
+              Start Voice Control
             </>
           )}
         </Button>
-        <div className="flex-1 w-full">
+        <div className="flex-1">
           {isListening ? (
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-              <p className="text-xs md:text-sm text-foreground truncate">
+              <p className="text-sm text-foreground">
                 {transcript || "Listening..."}
               </p>
             </div>
           ) : (
-            <p className="text-xs md:text-sm text-muted-foreground text-center sm:text-left">
-              <span className="hidden md:inline">Voice control ready. Commands: "neural", "canvas", "dashboard", "achievements"</span>
-              <span className="md:hidden">Say: "neural", "canvas", "dashboard", or "achievements"</span>
+            <p className="text-sm text-muted-foreground">
+              Voice control ready. Commands: "neural", "canvas", "dashboard", "achievements"
             </p>
           )}
         </div>
