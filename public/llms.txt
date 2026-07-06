@@ -6,3 +6,5 @@
 
 - [Home](/): Overview of the platform's features — neural network visualization, collaboration canvas, real-time dashboard, and gamification.
 - [AI Chat](/chat): Session-based AI chat with selectable personality modes. No sign-up required.
+- [AI Chart Generator Guide](/tools/chart-generator): Guide to turning data and natural-language prompts into charts with AI — chart type selection, prompting patterns, and FAQs.
+
