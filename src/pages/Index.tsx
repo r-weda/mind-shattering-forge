@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { NeuralNetworkViz } from "@/components/NeuralNetworkViz";
 import { CollaborationCanvas } from "@/components/CollaborationCanvas";
@@ -55,6 +56,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
+      <Helmet>
+        <title>Neural Experience - AI-Powered Interactive Platform</title>
+        <meta name="description" content="Step into the future with AI-powered neural network visualization, real-time collaboration canvas, voice controls, and cutting-edge data analytics." />
+        <link rel="canonical" href="https://mind-shatter-lab.lovable.app/" />
+        <meta property="og:title" content="Neural Experience - AI-Powered Interactive Platform" />
+        <meta property="og:description" content="Experience the future of AI visualization with neural networks, real-time collaboration, and voice-controlled interfaces." />
+        <meta property="og:url" content="https://mind-shatter-lab.lovable.app/" />
+      </Helmet>
       <ParticleBackground />
 
       {/* Hero Section */}

@@ -190,9 +190,9 @@ export const AIChat = () => {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Brain className="w-16 h-16 text-primary/50 mb-4" />
-            <h3 className="text-xl font-bold gradient-text mb-2">
+            <h2 className="text-xl font-bold gradient-text mb-2">
               Start a Conversation
-            </h3>
+            </h2>
             <p className="text-muted-foreground">
               Ask me anything! I'll respond based on the personality you've selected.
             </p>
@@ -256,6 +256,7 @@ export const AIChat = () => {
           <Button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
+            aria-label="Send message"
             className="bg-gradient-to-r from-primary to-accent hover:opacity-80 transition-opacity"
           >
             <Send className="w-4 h-4" />
