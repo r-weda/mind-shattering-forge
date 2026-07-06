@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
 import { AIChat } from "@/components/AIChat";
@@ -37,6 +38,14 @@ const ChatPage = () => {
 
   return (
     <>
+      <Helmet>
+        <title>AI Chat - Neural Experience</title>
+        <meta name="description" content="Engage with our advanced AI assistant for real-time help and neural network insights. Session-based chat with selectable personality modes — no sign-up required." />
+        <link rel="canonical" href="https://mind-shatter-lab.lovable.app/chat" />
+        <meta property="og:title" content="AI Chat - Neural Experience" />
+        <meta property="og:description" content="Engage with our advanced AI assistant for real-time help and neural network insights." />
+        <meta property="og:url" content="https://mind-shatter-lab.lovable.app/chat" />
+      </Helmet>
       <ParticleBackground />
       {!session ? <AuthForm /> : <AIChat />}
     </>
